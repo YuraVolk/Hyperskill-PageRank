@@ -80,53 +80,16 @@ public class Main {
                 {0    , 0    , 0    , 0 , 0     , 1./3., 1}
         };
 
-        double[][] test = new double[n][1];
-        test = fillInitialMatrix(test);
-        test = changeMatrixByConstant(test, getDotScalar(test), '/');
-        System.out.println(Arrays.deepToString(iterate(test, values)));
-        //System.out.print(getDotScalar(test));
-
-       /* double[][] J = {
-                {1,1,1,1,1,1,1},
-                {1,1,1,1,1,1,1},
-                {1,1,1,1,1,1,1},
-                {1,1,1,1,1,1,1},
-                {1,1,1,1,1,1,1},
-                {1,1,1,1,1,1,1},
-                {1,1,1,1,1,1,1}
-        };
-        Matrix j = new Matrix(values);
-        Matrix vals = new Matrix(values);
-        Matrix m = new Matrix(values);
-        double[] r = DoubleStream.generate(() -> 1.).limit(7).toArray();
-        r = DoubleStream.of(r).map(p -> 100 * p / 7).toArray();
-        Matrix r0;
-        Matrix r1;
-
-        r0 = new Matrix(r, 1).transpose();
-        r0 = vals.times(r0);
-        while (true) {
-            r1 = new Matrix(r0.getColumnPackedCopy(), 1).transpose();
-            r1 = m.times(r1);
-            if(r0.minus(r1).normInf() <= 0.01) {
-                break;
-            }
-            r0 = new Matrix(r1.getColumnPackedCopy(), 1).transpose();
-            r0 = m.times(r0);
-
+        double[][] M = new double[n][1];
+        M = fillInitialMatrix(M);
+        M = changeMatrixByConstant(M, getDotScalar(M), '/');
+        for (int i = 0; i < 63; i++) {
+            M = iterate(M, values);
         }
-        r1 = new Matrix(r0.getColumnPackedCopy(), 1).transpose();
-        r1 = m.times(r1);
-        r0 = new Matrix(r1.getColumnPackedCopy(), 1).transpose();
-        r0 = m.times(r0);
-        double[] secondRes = r0.getColumnPackedCopy();
-        r0 = r0.times(dampingFactor);
 
+        M = changeMatrixByConstant(M, 100, '*');
+        double[] intitial = {0.033, 0.012, 0.078, 0.049, 0.000, 0.027, 99.801};
 
-        double[] thirdRes = r0.getColumnPackedCopy();
-        for (int i = 0; i < thirdRes.length; i++) {
-            thirdRes[i] = thirdRes[i] + (1 - dampingFactor);
-        }
 
         for (double[] x : values) {
             for (double y : x) {
@@ -135,12 +98,16 @@ public class Main {
             System.out.println();
         }
         System.out.println();
-        for (double x : secondRes) {
-            System.out.println(numFormat.format(x) );
+        for (double x : intitial) {
+            System.out.println(numFormat.format(x));
         }
         System.out.println();
-        for (double x : thirdRes) {
-            System.out.println(numFormat.format(x));
-        }*/
+        for (double[] x : M) {
+            for (double y : x) {
+                System.out.println(numFormat.format(y));
+            }
+        }
+
+
     }
 }
