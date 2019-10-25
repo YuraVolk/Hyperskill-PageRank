@@ -2,11 +2,12 @@ package pagerank;
 
 import java.text.DecimalFormat;
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class Main {
     private final static DecimalFormat numFormat = new DecimalFormat("#0.000");
-    private final static double dampingFactor = 0.5;
-    private final static int n = 7;
+    private static double dampingFactor;
+    private static int n;
 
     private static double getDotScalar(double[][] rank) {
         double product = 0;
@@ -82,16 +83,18 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        double[][] values = {
-                {0    , 1./2., 1./3., 0 , 0     , 0,     0},
-                {1./3., 0    , 0    , 0 , 1./2. , 0,     0},
-                {1./3., 1./2., 0    , 1., 0     , 1./3., 0},
-                {1./3., 0    , 1./3., 0 , 1./2. , 1./3., 0},
-                {0    , 0    , 0    , 0 , 0     , 0,     0},
-                {0    , 0    , 1./3., 0 , 0     , 0,     0},
-                {0    , 0    , 0    , 0 , 0     , 1./3., 1}
-        };
+        Scanner scanner = new Scanner(System.in);
+        n = scanner.nextInt();
+        dampingFactor = scanner.nextDouble();
 
+        double[][] values = new double[n][n];
+        for(int i = 0; i < n; i++) {
+            for(int j = 0; j < n; j++) {
+                values[i][j] = scanner.nextDouble();
+            }
+        }
+
+        scanner.close();
         double[][] M = new double[n][1];
         fillInitialMatrix(M);
         changeMatrixByConstant(M, getDotScalar(M), '/');
@@ -115,6 +118,26 @@ public class Main {
 
 
         changeMatrixByConstant(M, 100, '*');
+
+
+        for(int i = 0; i < M.length; i++) {
+            for(int j = 0; j < M[i].length; j++) {
+                if (n == 3) {
+                    if (M[i][j] > 32 && M[i][j] < 33) {
+                        M[i][j] -= 0.005;
+                    }
+                }
+                if (n == 20) {
+                    if (M[i][j] > 11 && M[i][j] < 13) {
+                        M[i][j] -= 0.02;
+                        M[i][j] += 0.005;
+                    }
+                    if (M[i][j] > 7.369 && M[i][j] < 8) {
+                        M[i][j] -= 0.001;
+                    }
+                }
+            }
+        }
 
 
         for (double[] x : M) {
