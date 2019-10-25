@@ -2,8 +2,6 @@ package pagerank;
 
 import java.text.DecimalFormat;
 import java.util.Arrays;
-import java.util.stream.DoubleStream;
-
 
 public class Main {
     private final static DecimalFormat numFormat = new DecimalFormat("#0.000");
@@ -18,7 +16,7 @@ public class Main {
         return Math.sqrt(product);
     }
 
-    private static double[][] fillInitialMatrix(double[][] init) {
+    private static void fillInitialMatrix(double[][] init) {
         double mathRandom = Math.random();
         for(int i = 0;i<init.length;i++) {
             if (mathRandom == 0) {
@@ -27,7 +25,21 @@ public class Main {
             init[i][0] = mathRandom;
             mathRandom = Math.random();
         }
-        return init;
+    }
+
+    private static boolean substractMatrices(double[][] matrix1, double[][] matrix2) {
+        double c[][] = new double[matrix1.length][1];
+        for (int i = 0; i < matrix1.length; i++) {
+            for (int j = 0; j < matrix2[0].length; j++) {
+                c[i][j] = matrix1[i][j] - matrix2[i][j];
+            }
+        }
+
+        double sum = 0;
+        for (int i = 0; i < c.length; i++) {
+            sum += c[i][0];
+        }
+        return sum <= 0.01;
     }
 
     private static double[][] changeMatrixByConstant(double[][] matrix, double constant, char operation) {
@@ -64,8 +76,8 @@ public class Main {
 
     private static double[][] iterate(double[][] matrix, double[][] values) {
         matrix = multiplyMatrices(values, matrix);
-        matrix = changeMatrixByConstant(matrix, dampingFactor, '*');
-        matrix = changeMatrixByConstant(matrix, (1 - dampingFactor) / n, '+');
+        changeMatrixByConstant(matrix, dampingFactor, '*');
+        changeMatrixByConstant(matrix, (1 - dampingFactor) / n, '+');
         return matrix;
     }
 
@@ -81,27 +93,30 @@ public class Main {
         };
 
         double[][] M = new double[n][1];
-        M = fillInitialMatrix(M);
-        M = changeMatrixByConstant(M, getDotScalar(M), '/');
-        for (int i = 0; i < 63; i++) {
+        fillInitialMatrix(M);
+        changeMatrixByConstant(M, getDotScalar(M), '/');
+
+        int count = 0;
+        double[][] tempM;
+        for (int i = 0; i < 32; i++) {
+            M = iterate(M, values);
+            count++;
+            tempM = M;
+            M = iterate(M, values);
+            count++;
+            if (substractMatrices(tempM, M)) {
+                break;
+            }
+
+        }
+        for (int i = 0; i < count; i++) {
             M = iterate(M, values);
         }
 
-        M = changeMatrixByConstant(M, 100, '*');
-        double[] intitial = {0.033, 0.012, 0.078, 0.049, 0.000, 0.027, 99.801};
+
+        changeMatrixByConstant(M, 100, '*');
 
 
-        for (double[] x : values) {
-            for (double y : x) {
-                System.out.print(numFormat.format(y) + " ");
-            }
-            System.out.println();
-        }
-        System.out.println();
-        for (double x : intitial) {
-            System.out.println(numFormat.format(x));
-        }
-        System.out.println();
         for (double[] x : M) {
             for (double y : x) {
                 System.out.println(numFormat.format(y));
