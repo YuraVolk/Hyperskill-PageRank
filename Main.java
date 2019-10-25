@@ -1,12 +1,12 @@
 package pagerank;
 
 import java.text.DecimalFormat;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Main {
     private final static DecimalFormat numFormat = new DecimalFormat("#0.000");
-    private static double dampingFactor;
+    private static final double dampingFactor = 0.5;
     private static int n;
 
     private static double getDotScalar(double[][] rank) {
@@ -36,11 +36,16 @@ public class Main {
             }
         }
 
-        double sum = 0;
+        double f = 0;
         for (int i = 0; i < c.length; i++) {
-            sum += c[i][0];
+            double s = 0;
+            for (int j = 0; j < c[0].length; j++) {
+                s += Math.abs(c[i][j]);
+            }
+            f = Math.max(f,s);
         }
-        return sum <= 0.01;
+
+        return f <= 0.01;
     }
 
     private static double[][] changeMatrixByConstant(double[][] matrix, double constant, char operation) {
@@ -75,26 +80,7 @@ public class Main {
         return result;
     }
 
-    private static double[][] iterate(double[][] matrix, double[][] values) {
-        matrix = multiplyMatrices(values, matrix);
-        changeMatrixByConstant(matrix, dampingFactor, '*');
-        changeMatrixByConstant(matrix, (1 - dampingFactor) / n, '+');
-        return matrix;
-    }
-
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        n = scanner.nextInt();
-        dampingFactor = scanner.nextDouble();
-
-        double[][] values = new double[n][n];
-        for(int i = 0; i < n; i++) {
-            for(int j = 0; j < n; j++) {
-                values[i][j] = scanner.nextDouble();
-            }
-        }
-
-        scanner.close();
+    private static double[][] calculatePagerank(double[][] values) {
         double[][] M = new double[n][1];
         fillInitialMatrix(M);
         changeMatrixByConstant(M, getDotScalar(M), '/');
@@ -119,33 +105,82 @@ public class Main {
 
         changeMatrixByConstant(M, 100, '*');
 
+        return M;
+    }
 
-        for(int i = 0; i < M.length; i++) {
-            for(int j = 0; j < M[i].length; j++) {
-                if (n == 3) {
-                    if (M[i][j] > 32 && M[i][j] < 33) {
-                        M[i][j] -= 0.005;
-                    }
-                }
-                if (n == 20) {
-                    if (M[i][j] > 11 && M[i][j] < 13) {
-                        M[i][j] -= 0.02;
-                        M[i][j] += 0.005;
-                    }
-                    if (M[i][j] > 7.369 && M[i][j] < 8) {
-                        M[i][j] -= 0.001;
-                    }
-                }
+    private static Map<String, Double> sortMap(Map<String, Double> queries) {
+        return queries.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue())
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                        Map.Entry::getValue, (e2, e1) -> e1, LinkedHashMap::new));
+    }
+
+    private static double[][] iterate(double[][] matrix, double[][] values) {
+        matrix = multiplyMatrices(values, matrix);
+        changeMatrixByConstant(matrix, dampingFactor, '*');
+        changeMatrixByConstant(matrix, (1 - dampingFactor) / n, '+');
+        return matrix;
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        n = scanner.nextInt();
+
+        String[] sites = new String[n];
+        for(int i = 0; i < n; i++) {
+            sites[i] = scanner.next();
+        }
+
+        double[][] values = new double[n][n];
+        for(int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                values[i][j] = scanner.nextDouble();
             }
         }
 
+        String query = scanner.next();
 
-        for (double[] x : M) {
-            for (double y : x) {
-                System.out.println(numFormat.format(y));
+        scanner.close();
+
+        Map<String, Double> queries = new HashMap<>();
+        Map<String, Double> priorities = new HashMap<>();
+
+        double[][] M = calculatePagerank(values);
+        for (int i = 0; i < n; i++) {
+            if (sites[i].contains(query)) {
+                priorities.put(sites[i], M[i][0]);
+                continue;
             }
+            queries.put(sites[i], M[i][0]);
         }
 
+        List<String> sortedSites = new ArrayList<>(sortMap(queries).keySet());
+        List<String> sortedPriorities = new ArrayList<>(sortMap(priorities).keySet());
+        Collections.reverse(sortedPriorities);
+        Collections.reverse(sortedSites);
 
+        int count = 0;
+        for (int i = 0; i < 5; i++) {
+            count = i;
+            if (!(i >= sortedPriorities.size())) {
+                System.out.println(sortedPriorities.get(i));
+            } else {
+                break;
+            }
+        }
+        if (count < 5) {
+            for (int i = 0; i < 5; i++) {
+                count++;
+                if (count > 5) {
+                    break;
+                }
+                if (!(i >= sortedSites.size())) {
+                    System.out.println(sortedSites.get(i));
+                } else {
+                    break;
+                }
+            }
+
+        }
     }
 }
